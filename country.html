@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Responsive Form</h2>
+        <p>Country & Region form</p>
+        <!-- <p>sample forms 02: multi colums</p> -->
+
+        <form id="inputform01" class="jumbotron container">
+            <div class="row form-group">
+                <div class="col-sm-3">
+                    <label for="fname">First Name</label>
+                </div>
+                <div class="col-sm-9">
+                    <input type="text" id="fname" name="firstname" placeholder="Your name.." class="form-control">
+                </div>
+            </div>
+            <div class="row form-group">
+                <div class="col-sm-3">
+                    <label for="lname">Last Name</label>
+                </div>
+                <div class="col-sm-9">
+                    <input type="text" id="lname" name="lastname" placeholder="Your last name.." class="form-control">
+                </div>
+            </div>
+            <div class="row form-group">
+                <div class="col-sm-3">
+                    <label for="country">Country</label>
+                </div>
+                <div class="col-sm-3">
+                    <select id="country-select" name="country" class="form-control">
+                    </select>
+                </div>
+                <div class="col-sm-3">
+                    <label for="region">Region</label>
+                </div>
+                <div class="col-sm-3">
+                    <select id="region-select" disabled name="region" class="form-control">
+                    </select>
+                </div>
+            </div>
+            <div class="row pull-right">
+                <div class="col-sm-12">
+                    <input type="button" value="Send" class="btn btn-info" id="send-button">
+                </div>
+            </div>
+        </form>
+    </div>
+ 
+
+    <script>
+        /** Region 1: Vùng khai báo các biến toàn cục **/
+        "use strict";
+        /** Region 2: Vùng gán thực thi các sự kiện **/
+        $(document).ready(function() {
+            onPageLoading();
+
+            // hàm thực thị sự kiện onchange select country
+            $("#country-select").on("change", function() {
+                onChangeCountrySelect(this);
+            })
+        })
+
+        /** Region 3: Vùng khai báo các hàm xử lý sự kiện **/
+        // hàm xử lý sự kiện load trang
+        function onPageLoading() {
+            "use strict";
+            callApiGetCountryList();
+        }
+
+        // hàm xử lý sự kiện khi click chọn option country
+        function onChangeCountrySelect(paramSelectElement) {
+            "use strict";
+            var vOptionValue = $("#country-select option:selected").val();
+            console.log(vOptionValue);
+            callApiGetRegionsByCountryCode(vOptionValue);
+        }
+
+        /** Region 4: Vùng khai báo các hàm dùng chung cho toàn chương trình **/
+        // hàm call Api lấy danh sách country
+        function callApiGetCountryList() {
+            "use strict";
+            $.ajax({
+                url: "http://localhost:8080/countries",
+                type: "GET",
+                dataType: "json",
+                success: function(res) {
+                    console.log(res);
+                    loadDataCountryToSelect(res);
+                },
+                error: function(err) {
+                    console.log(err);
+                }
+            })
+        }
+
+        // hàm call Api lấy danh sách region dựa theo country
+        function callApiGetRegionsByCountryCode(paramCountryCode) {
+            "use strict";
+            $.ajax({
+                url: `http://localhost:8080/regions?countryCode=${paramCountryCode}`,
+                type: "GET",
+                success: function(res) {
+                    console.log(res);
+                    loadDataRegionToSelect(res);
+                },
+                error: function(err) {
+                    console.log(err);
+                }
+            })
+        }
+
+        // hàm hiển thị dữ liệu danh sách country lên select
+        function loadDataCountryToSelect(paramResponseObject) {
+            "use strict";
+            paramResponseObject.map((bCountry) => {
+                $("#country-select").append(`
+                    <option value=${bCountry.countryCode}>${bCountry.countryName}</option>
+                `)
+            })
+           
+        }
+
+        // hàm hiển thị dữ liệu danh sách region lên select/option
+        function loadDataRegionToSelect(paramResponeRegionObj) {
+            "use strict";
+            $("#region-select option").remove();
+            if(paramResponeRegionObj.length === 0) {
+                $("#region-select").prop("disabled", true);
+            }else {
+                $("#region-select").prop("disabled", false);
+                paramResponeRegionObj.map((bRegion) => {
+                    $("#region-select").append(`
+                        <option value=${bRegion.regionCode}>${bRegion.regionName}</option>
+                    `)
+                })
+            }
+        }
+
+    </script>
+</body>
+
+</html>
